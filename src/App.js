@@ -12,6 +12,12 @@ import Button from '@material-ui/core/Button';
 import { makeStyles } from '@material-ui/core/styles';
 import DoneIcon from '@material-ui/icons/Done';
 import BackspaceIcon from '@material-ui/icons/Backspace';
+import { grey } from '@material-ui/core/colors';
+
+const imageHeight = window.innerHeight*0.3;
+const OperationFontSizeFactor = 2.9*window.innerHeight/1024.0;
+const textFontSize = (OperationFontSizeFactor).toString() + 'rem';
+console.log("textFontSize", textFontSize);
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -19,26 +25,25 @@ const useStyles = makeStyles((theme) => ({
     height: '100vh',
     alignContent: 'center',
   },
-  paper: {
-    padding: theme.spacing(2),
-    textAlign: 'center',
-  },
 
+  variableFontSize: {
+    fontSize: textFontSize
+  }
+  
 }));
 
 
 function TopWindow () {
-  const imageWidth = window.screen.width > 414 ? window.screen.width : 414;
-  const imageHeight = Math.round(imageWidth * 9.0 / 16);
-  console.log('width=', imageWidth, 'height=', imageHeight);
+  const imageWidth = window.screen.width/2; // > 414 ? window.screen.width : 414;
+  console.log('width=', imageWidth, 'height=', imageHeight, "screen=", window.innerHeight);
   return (
     <div 
         style={{
           margin: 0,
+          padding:0,
           backgroundImage: 'url(sam.jpg)',
           backgroundSize: "cover",
           height: imageHeight,
-          width: imageWidth,
           color: "#f5f5f5"
         }}
       />
@@ -49,7 +54,7 @@ function TopWindow () {
 function Key(props)
 {
     return (
-      <Button fullWidth='True' style={{fontSize: "2.4em"}} 
+      <Button fullWidth='True' style={{fontSize: 'inherit'}}
         onClick={() => props.onClick()}
         >
         {props.value}
@@ -68,7 +73,7 @@ class Keyboard extends React.Component {
   
   render() {
     return (
-      <Container>
+      <Paper variant="outlined" style={{ fontSize: textFontSize}}>
         <ButtonGroup style={{ justifyContent:'center', display:'flex'}}>
           {this.renderKey(1)}
           {this.renderKey(2)}
@@ -84,14 +89,14 @@ class Keyboard extends React.Component {
           {this.renderKey(0)}
           </ButtonGroup>
         <ButtonGroup style={{ justifyContent:'space-around', display:'flex'}}>
-            <IconButton color="primary" onClick={() => this.props.onBackspace()} style={{borderRadius: 0}}>
-              <BackspaceIcon style={{fontSize:'4rem'}}/>
-            </IconButton>
-            <IconButton color="primary" onClick={() => this.props.onValidate()} style={{borderRadius: 0}}>
-              <DoneIcon style={{fontSize:'4rem'}}/>
-            </IconButton>
-          </ButtonGroup>
-</Container>      
+          <IconButton color="primary" onClick={() => this.props.onBackspace()} style={{borderRadius: 0}}>
+            <BackspaceIcon style={{fontSize: textFontSize}}/>
+          </IconButton>
+          <IconButton color="primary" onClick={() => this.props.onValidate()} style={{borderRadius: 0}}>
+            <DoneIcon style={{fontSize: textFontSize}}/>
+          </IconButton>
+        </ButtonGroup>
+</Paper>      
     );
   }
 }
@@ -102,18 +107,39 @@ function Status(props) {
   )
 }
 
+function RenderResult(props) {
+  if (props.value.length === 0) {
+    return (
+      <div style={{color: 'grey' ,textAlign: 'right', paddingLeft: '10px'}}>
+        ?
+      </div>      
+    )
+  }
+    return (
+      <div gutterBottom style={{textAlign: 'right', paddingLeft: '10px'}}>
+        {props.value}
+      </div>      
+    )
+  
+}
 function Operation(props) {
   return (
-    <Container style={{paddingTop: '50px'}}>
-      <Typography variant="h2" component="h2" gutterBottom  style={{textAlign: 'center'}}>
-      {props.value.operation}
-      </Typography>      
-      <Typography variant="h2" component="h2" gutterBottom style={{paddingLeft: '10px'}}>
-      = {props.value.result}
-      </Typography>      
-      <h1>
-      {props.value.status}
-      </h1>
+    <Container style={{
+      marginLeft: '-30%',
+      fontSize: textFontSize,
+    }}>
+      <div  style={{textAlign: 'right',
+                                                                   marginBottom: 5,
+                                                             }}>
+      {props.value.operands[0]}
+      </div>      
+      <div  style={{textAlign: 'right',
+                                                                   marginBottom: 5,
+                                                            }}>
+      +  {props.value.operands[1]}
+      </div>
+      <RenderResult value={props.value.result}/>
+      {/* {props.value.status} */}
     </Container>
   )   
 }
@@ -141,7 +167,6 @@ class MainPage extends React.Component {
     const b = getNumber10();
 
     return { ...this.state, 
-             operation: a.toString() + " + " + b.toString(),
              result : "",
              status: null,
              operands:[a, b],};
@@ -213,41 +238,38 @@ class MainPage extends React.Component {
   render() {
     
     return (
-      <Box >
+      <Container style={{
+        padding:0,
+        maring:0,
+      }}>
         <TopWindow/>
-
+        <Grid container
+              direction="column"
+              justify='space-evenly'
+          style={{ height: window.innerHeight - imageHeight }}
+        >
+          <Grid item>
         <Status value={this.state.errors}/>
         <Operation value={this.state}/>
-
+</Grid>
+          <Grid item>
         <Keyboard
       value={this.state}
       onClick={(i) => this.handleClick(i) }
       onValidate={() => this.handleValidation() }
       onBackspace={() => this.handleBackspace() }
         />
-        </Box>
+            </Grid>
+
+    </Grid>
+</Container>      
     )
   }
 }
 
 function App() {
-
-  const classes = useStyles();
-
   return (
-    <Container >
-        <Grid container
-      direction="column"
-      justify="center"
-      alignItems="center"
-      className={classes.root}
-        >
-        
     <MainPage/>
-
-        </Grid>
-    </Container>
-
   );
 }
 
