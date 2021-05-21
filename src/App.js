@@ -1,74 +1,52 @@
 import React, { Component } from 'react';
 import Paper from '@material-ui/core/Paper';
 import Container from '@material-ui/core/Container';
-import Typography from '@material-ui/core/Typography';
 import Grid from '@material-ui/core/Grid';
-import Box from '@material-ui/core/Box';
-import Link from '@material-ui/core/Link';
-import TextField from '@material-ui/core/TextField';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
 import DoneIcon from '@material-ui/icons/Done';
 import BackspaceIcon from '@material-ui/icons/Backspace';
-import { grey } from '@material-ui/core/colors';
 
 const imageHeight = window.innerHeight*0.3;
 const OperationFontSizeFactor = 2.9*window.innerHeight/1024.0;
 const textFontSize = (OperationFontSizeFactor).toString() + 'rem';
 console.log("textFontSize", textFontSize);
 
-const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    height: '100vh',
-    alignContent: 'center',
-  },
-
-  variableFontSize: {
-    fontSize: textFontSize
-  }
-  
-}));
-
-
 function TopWindow () {
-  const imageWidth = window.screen.width/2; // > 414 ? window.screen.width : 414;
-  console.log('width=', imageWidth, 'height=', imageHeight, "screen=", window.innerHeight);
   return (
     <div 
-        style={{
-          margin: 0,
-          padding:0,
-          backgroundImage: 'url(sam.jpg)',
-          backgroundSize: "cover",
-          height: imageHeight,
-          color: "#f5f5f5"
-        }}
-      />
+      style={{
+        margin: 0,
+        padding:0,
+        backgroundImage: 'url(sam.jpg)',
+        backgroundSize: "cover",
+        height: imageHeight,
+        color: "#f5f5f5"
+      }}
+    />
   );
 }
 
 
 function Key(props)
 {
-    return (
-      <Button fullWidth='True' style={{fontSize: 'inherit'}}
-        onClick={() => props.onClick()}
-        >
-        {props.value}
-      </Button>
-    );
+  return (
+    <Button fullWidth='True' style={{fontSize: 'inherit'}}
+            onClick={() => props.onClick()}
+    >
+      {props.value}
+    </Button>
+  );
 }
 
 class Keyboard extends React.Component {
 
   renderKey(i) {
     return <Key
-    value={i}
+             value={i}
     onClick= {() => this.props.onClick(i) }
-      />;
+/>;
   }
   
   render() {
@@ -80,14 +58,14 @@ class Keyboard extends React.Component {
           {this.renderKey(3)}
           {this.renderKey(4)}
           {this.renderKey(5)}
-          </ButtonGroup>
+        </ButtonGroup>
         <ButtonGroup style={{ justifyContent:'center', display:'flex'}}>
           {this.renderKey(6)}
           {this.renderKey(7)}
           {this.renderKey(8)}
           {this.renderKey(9)}
           {this.renderKey(0)}
-          </ButtonGroup>
+        </ButtonGroup>
         <ButtonGroup style={{ justifyContent:'space-around', display:'flex'}}>
           <IconButton color="primary" onClick={() => this.props.onBackspace()} style={{borderRadius: 0}}>
             <BackspaceIcon style={{fontSize: textFontSize}}/>
@@ -96,14 +74,14 @@ class Keyboard extends React.Component {
             <DoneIcon style={{fontSize: textFontSize}}/>
           </IconButton>
         </ButtonGroup>
-</Paper>      
+      </Paper>      
     );
   }
 }
 
 function Status(props) {
   return (
-      <Paper>{props.value}</Paper>
+    <Paper>{props.value}</Paper>
   )
 }
 
@@ -115,11 +93,11 @@ function RenderResult(props) {
       </div>      
     )
   }
-    return (
-      <div gutterBottom style={{textAlign: 'right', paddingLeft: '10px'}}>
-        {props.value}
-      </div>      
-    )
+  return (
+    <div gutterBottom style={{textAlign: 'right', paddingLeft: '10px'}}>
+      {props.value}
+    </div>      
+  )
   
 }
 function Operation(props) {
@@ -129,14 +107,14 @@ function Operation(props) {
       fontSize: textFontSize,
     }}>
       <div  style={{textAlign: 'right',
-                                                                   marginBottom: 5,
-                                                             }}>
-      {props.value.operands[0]}
+                    marginBottom: 5,
+                   }}>
+        {props.value.operands[0]}
       </div>      
       <div  style={{textAlign: 'right',
-                                                                   marginBottom: 5,
-                                                            }}>
-      +  {props.value.operands[1]}
+                    marginBottom: 5,
+                   }}>
+        +  {props.value.operands[1]}
       </div>
       <RenderResult value={props.value.result}/>
       {/* {props.value.status} */}
@@ -145,7 +123,7 @@ function Operation(props) {
 }
 
 function getNumber10() {
-    return Math.floor((Math.random() * 10) + 1);
+  return Math.floor((Math.random() * 10) + 1);
 }
 
 
@@ -178,23 +156,23 @@ class MainPage extends React.Component {
 
 
   handleBackspace() {
-      const newResult = this.state.result.slice(0, this.state.result.length -1);
-      this.setState( {...this.state, result: newResult} );
+    const newResult = this.state.result.slice(0, this.state.result.length -1);
+    this.setState( {...this.state, result: newResult} );
   }
   handleNumber(i) {
-      let newResult = this.state.result.slice();
-      newResult += i;
-      this.setState( {...this.state, result: newResult} );
-      console.log(this.state);
+    let newResult = this.state.result.slice();
+    newResult += i;
+    this.setState( {...this.state, result: newResult} );
+    console.log(this.state);
   }
   handleValidation() {
-      if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
-        this.setState( {...this.state, status: "true" } );
-      } else {
-        this.setState( {...this.state, status: "false", errors: this.state.errors +1} );
-      }
+    if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
+      this.setState( {...this.state, status: "true" } );
+    } else {
+      this.setState( {...this.state, status: "false", errors: this.state.errors +1} );
+    }
 
-      setTimeout(() => this.setState(this.getNewOperation()), 1000);
+    setTimeout(() => this.setState(this.getNewOperation()), 1000);
   }
   
   
@@ -246,23 +224,23 @@ class MainPage extends React.Component {
         <Grid container
               direction="column"
               justify='space-evenly'
-          style={{ height: window.innerHeight - imageHeight }}
+              style={{ height: window.innerHeight - imageHeight }}
         >
           <Grid item>
-        <Status value={this.state.errors}/>
-        <Operation value={this.state}/>
-</Grid>
+            <Status value={this.state.errors}/>
+            <Operation value={this.state}/>
+          </Grid>
           <Grid item>
-        <Keyboard
-      value={this.state}
-      onClick={(i) => this.handleClick(i) }
-      onValidate={() => this.handleValidation() }
-      onBackspace={() => this.handleBackspace() }
-        />
-            </Grid>
+            <Keyboard
+              value={this.state}
+              onClick={(i) => this.handleClick(i) }
+              onValidate={() => this.handleValidation() }
+              onBackspace={() => this.handleBackspace() }
+            />
+          </Grid>
 
-    </Grid>
-</Container>      
+        </Grid>
+      </Container>
     )
   }
 }
