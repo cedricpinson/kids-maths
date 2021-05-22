@@ -5,7 +5,9 @@ import Grid from '@material-ui/core/Grid';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
+
 import DoneIcon from '@material-ui/icons/Done';
+import ClearIcon from '@material-ui/icons/Clear';
 import BackspaceIcon from '@material-ui/icons/Backspace';
 
 const imageHeight = window.innerHeight*0.3;
@@ -80,8 +82,19 @@ class Keyboard extends React.Component {
 }
 
 function Status(props) {
+  console.log(props);
+  let errors = [];
+  for (let i = 0; i < props.errors; i++) {
+    errors.push(<ClearIcon/>);
+  }
+                                        
   return (
-    <Paper>{props.value}</Paper>
+    <Container style= {{
+      paddingLeft:0,
+      paddingRight:0,
+      textAlign: 'right'
+    }}
+    >{errors}</Container>
   )
 }
 
@@ -100,25 +113,85 @@ function RenderResult(props) {
   )
   
 }
+
+
+
+function Progress(props) {
+  const color='blue';
+  let style = {
+    color: color,
+    backgroundColor: color,
+    height: 5,
+    width: '1px',
+    marginLeft: '0%',
+    paddingRight: '0%',
+  };
+  
+  if (!props.reset) {
+    style.color = 'red';
+    style.backgroundColor = 'red';
+    style.transition = '3s linear';
+    style.paddingRight='99%';
+  }
+
+  return (
+    <hr
+      style={style}
+    />
+  )
+}
+
+
 function Operation(props) {
+
+  // get max number of character to draw the line
+  let maxCharacter = 0;
+  if (props.value.operands[0] !== null) {
+    const operand0 = props.value.operands[0].toString().length;
+    maxCharacter = operand0 > maxCharacter ? operand0 : maxCharacter;
+    const operand1 = props.value.operands[1].toString().length;
+    maxCharacter = operand1 > maxCharacter ? operand1 : maxCharacter;
+  }
+  maxCharacter+=1;
+  const lineSize = (0.65*maxCharacter*OperationFontSizeFactor).toString() +'rem';
+  
   return (
     <Container style={{
-      marginLeft: '-30%',
-      fontSize: textFontSize,
+      padding:0
     }}>
-      <div  style={{textAlign: 'right',
-                    marginBottom: 5,
-                   }}>
-        {props.value.operands[0]}
-      </div>      
-      <div  style={{textAlign: 'right',
-                    marginBottom: 5,
-                   }}>
-        +  {props.value.operands[1]}
-      </div>
-      <RenderResult value={props.value.result}/>
-      {/* {props.value.status} */}
-    </Container>
+
+      <Progress reset={props.value.reset} style={{
+        margin:0,
+      }}/>
+      
+      <Container style={{
+        marginLeft: '-30%',
+        fontSize: textFontSize,
+      }}>
+        <div  style={{textAlign: 'right',
+                      marginBottom: 5,
+                     }}>
+          {props.value.operands[0]}
+        </div>
+        <div  style={{textAlign: 'right',
+                      marginBottom: 5,
+                     }}>
+          +  {props.value.operands[1]}
+        </div>
+        <hr style={{
+          marginTop:0,
+          marginBottom:0,
+          color: 'black',
+          backgroundColor: 'black',
+          marginRight: '0%',
+          width: lineSize,
+          border: '2px solid black',
+        }} />
+        <RenderResult value={props.value.result}/>
+        {/* {props.value.status} */}
+      </Container>
+      
+    </Container>    
   )   
 }
 
@@ -132,6 +205,7 @@ class MainPage extends React.Component {
     super(props);
     this.state = {
       operation: null,
+      reset: true,
       status: null,
       errors: null,
       operands: [null, null],
@@ -146,12 +220,14 @@ class MainPage extends React.Component {
 
     return { ...this.state, 
              result : "",
+             reset: true,
              status: null,
              operands:[a, b],};
   }
   
   onNewOperation() {
     this.setState(this.getNewOperation());
+    this.setState({...this.state, reset: false});
   }
 
 
@@ -166,13 +242,17 @@ class MainPage extends React.Component {
     console.log(this.state);
   }
   handleValidation() {
+    if (this.state.result.length === 0) {
+      return;
+    }
+
     if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
       this.setState( {...this.state, status: "true" } );
     } else {
       this.setState( {...this.state, status: "false", errors: this.state.errors +1} );
     }
 
-    setTimeout(() => this.setState(this.getNewOperation()), 1000);
+    setTimeout(() => this.onNewOperation(), 1000);
   }
   
   
@@ -188,7 +268,7 @@ class MainPage extends React.Component {
       return;
     }
 
-    if (event.key === "Enter" && this.state.result.length > 0) {
+    if (event.key === "Enter") {
       this.handleValidation();
       return;
     }
@@ -227,7 +307,7 @@ class MainPage extends React.Component {
               style={{ height: window.innerHeight - imageHeight }}
         >
           <Grid item>
-            <Status value={this.state.errors}/>
+            <Status errors={this.state.errors}/>
             <Operation value={this.state}/>
           </Grid>
           <Grid item>
