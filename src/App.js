@@ -5,6 +5,10 @@ import Grid from '@material-ui/core/Grid';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import IconButton from '@material-ui/core/IconButton';
 import Button from '@material-ui/core/Button';
+import Box from '@material-ui/core/Box';
+import Typography from '@material-ui/core/Typography';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import PropTypes from 'prop-types';
 
 import DoneIcon from '@material-ui/icons/Done';
 import ClearIcon from '@material-ui/icons/Clear';
@@ -14,6 +18,39 @@ const imageHeight = window.innerHeight*0.3;
 const OperationFontSizeFactor = 2.9*window.innerHeight/1024.0;
 const textFontSize = (OperationFontSizeFactor).toString() + 'rem';
 console.log("textFontSize", textFontSize);
+
+function CircularProgressWithLabel(props) {
+  return (
+    <Box position="relative" display="inline-flex" style={{
+        verticalAlign:'middle'
+    }}>
+      <CircularProgress variant="determinate" {...props}/>
+      <Box
+        top={0}
+        left={0}
+        bottom={0}
+        right={0}
+        position="absolute"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Typography variant="caption" component="div" color="textSecondary">{`${Math.round(
+          props.value,
+        )}%`}</Typography>
+      </Box>
+    </Box>
+  );
+}
+
+CircularProgressWithLabel.propTypes = {
+  /**
+   * The value of the progress indicator for the determinate variant.
+   * Value between 0 and 100.
+   */
+  value: PropTypes.number.isRequired,
+};
+
 
 function TopWindow () {
   return (
@@ -82,26 +119,39 @@ class Keyboard extends React.Component {
 }
 
 function Status(props) {
-  console.log(props);
+
+  const iconSize = (OperationFontSizeFactor/1.5).toString() + 'rem';
   let errors = [];
-  for (let i = 0; i < props.errors; i++) {
-    errors.push(<ClearIcon/>);
+  for (let i = 3; i > 0; i--) {
+    const color = i > props.errors ? 'lightgrey' : 'black';
+    errors.push(<ClearIcon style={{
+      fontSize: iconSize,
+      color: color,
+      verticalAlign: 'middle'
+    }}/>);
   }
-                                        
+
   return (
-    <Container style= {{
-      paddingLeft:0,
-      paddingRight:0,
-      textAlign: 'right'
-    }}
-    >{errors}</Container>
+    <Grid container justify="space-between" alignItems="center" style={{
+      fontSize: iconSize
+    }}>
+      <Grid item>
+      Level 1  
+      </Grid>
+
+      <Grid item>
+        <CircularProgressWithLabel value={100} />
+      </Grid>
+      
+      <Grid item>{errors}</Grid>
+      </Grid>
   )
 }
 
 function RenderResult(props) {
   if (props.value.length === 0) {
     return (
-      <div style={{color: 'grey' ,textAlign: 'right', paddingLeft: '10px'}}>
+      <div style={{color: 'lightgrey' ,textAlign: 'right', paddingLeft: '10px'}}>
         ?
       </div>      
     )
@@ -160,7 +210,7 @@ function Operation(props) {
       padding:0
     }}>
 
-      <Progress reset={props.value.reset} style={{
+      <Progress reset={props.value.resetProgressTimer} style={{
         margin:0,
       }}/>
       
@@ -205,10 +255,11 @@ class MainPage extends React.Component {
     super(props);
     this.state = {
       operation: null,
-      reset: true,
+      resetProgressTimer: true,
       status: null,
       errors: null,
       operands: [null, null],
+      timer:null
     }
 
     this.state = this.getNewOperation();
@@ -220,16 +271,26 @@ class MainPage extends React.Component {
 
     return { ...this.state, 
              result : "",
-             reset: true,
+             resetProgressTimer: true,
              status: null,
              operands:[a, b],};
   }
   
   onNewOperation() {
-    this.setState(this.getNewOperation());
-    this.setState({...this.state, reset: false});
+    // clear previous timeout
+    clearTimeout(this.state.timer);
+
+    const newTimer = setTimeout(() => this.evaluateEndOfTimer(), 3000);
+    let newState = {...this.getNewOperation(), resetProgressTimer: false, timer: newTimer};
+    this.setState(newState);
+    // this.setState({...this.state, reset: false, timer: newTimer});
   }
 
+  evaluateEndOfTimer() {
+    if (!this.handleValidation(true)) {
+      
+    }
+  }
 
   handleBackspace() {
     const newResult = this.state.result.slice(0, this.state.result.length -1);
@@ -241,20 +302,25 @@ class MainPage extends React.Component {
     this.setState( {...this.state, result: newResult} );
     console.log(this.state);
   }
-  handleValidation() {
-    if (this.state.result.length === 0) {
-      return;
-    }
-
-    if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
-      this.setState( {...this.state, status: "true" } );
-    } else {
-      this.setState( {...this.state, status: "false", errors: this.state.errors +1} );
-    }
-
-    setTimeout(() => this.onNewOperation(), 1000);
-  }
   
+  handleValidation(checkEmptyResult) {
+
+    if (!checkEmptyResult && this.state.result.length === 0) {
+      return false;
+    }
+
+    let validate;
+    if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
+      this.setState( {...this.state, status: "true", resetProgressTimer: 'true' } );
+      validate = true;
+    } else {
+      this.setState( {...this.state, status: "false", resetProgressTimer: 'true', errors: this.state.errors +1} );
+      validate = false;
+    }
+
+    this.onNewOperation();
+    return validate;
+  }
   
   handleKeyDown(event) {
 
@@ -286,6 +352,7 @@ class MainPage extends React.Component {
   componentDidMount() {
     this.handleKeyFunction = this.handleKeyDown.bind(this);
     document.addEventListener("keydown", this.handleKeyFunction, false);
+    document.addEventListener('touchmove', (e) => {e.preventDefault()}, { passive: false });
   }
   
   componentWillUnmount() {
