@@ -14,6 +14,8 @@ import DoneIcon from '@material-ui/icons/Done';
 import ClearIcon from '@material-ui/icons/Clear';
 import BackspaceIcon from '@material-ui/icons/Backspace';
 
+import './App.css';
+
 const imageHeight = window.innerHeight*0.3;
 const OperationFontSizeFactor = 2.9*window.innerHeight/1024.0;
 const textFontSize = (OperationFontSizeFactor).toString() + 'rem';
@@ -166,26 +168,17 @@ function RenderResult(props) {
 
 
 
-function Progress(props) {
-  const color='blue';
+function NewProgress(props) {
   let style = {
-    color: color,
-    backgroundColor: color,
-    height: 5,
+    height: '5px',
     width: '1px',
     marginLeft: '0%',
-    paddingRight: '0%',
+    border: '0'
   };
-  
-  if (!props.reset) {
-    style.color = 'red';
-    style.backgroundColor = 'red';
-    style.transition = '3s linear';
-    style.paddingRight='99%';
-  }
 
+  const className= props.reset ? "progress-exit" : "progress-enter-active";
   return (
-    <hr
+    <hr className={className}
       style={style}
     />
   )
@@ -204,13 +197,13 @@ function Operation(props) {
   }
   maxCharacter+=1;
   const lineSize = (0.65*maxCharacter*OperationFontSizeFactor).toString() +'rem';
-  
+
   return (
     <Container style={{
       padding:0
     }}>
 
-      <Progress reset={props.value.resetProgressTimer} style={{
+      <NewProgress reset={props.value.resetProgressTimer} style={{
         margin:0,
       }}/>
       
@@ -275,14 +268,25 @@ class MainPage extends React.Component {
              status: null,
              operands:[a, b],};
   }
-  
-  onNewOperation() {
-    // clear previous timeout
-    clearTimeout(this.state.timer);
 
+
+  prepareNewOperation() {
+    const newTimer = setTimeout(() => this.startNewOperation(), 100);
+    let newState = {...this.state, resetProgressTimer: true, timer: newTimer};
+    this.setState(newState);
+  }
+
+  startNewOperation() {
     const newTimer = setTimeout(() => this.evaluateEndOfTimer(), 3000);
     let newState = {...this.getNewOperation(), resetProgressTimer: false, timer: newTimer};
     this.setState(newState);
+  }
+
+  onNewOperation() {
+    // clear previous timeout
+    clearTimeout(this.state.timer);
+    this.prepareNewOperation();
+
     // this.setState({...this.state, reset: false, timer: newTimer});
   }
 
@@ -311,10 +315,10 @@ class MainPage extends React.Component {
 
     let validate;
     if ( (this.state.operands[0] + this.state.operands[1]) === parseInt(this.state.result)  ) {
-      this.setState( {...this.state, status: "true", resetProgressTimer: 'true' } );
+      this.setState( {...this.state, status: true, resetProgressTimer: true } );
       validate = true;
     } else {
-      this.setState( {...this.state, status: "false", resetProgressTimer: 'true', errors: this.state.errors +1} );
+      this.setState( {...this.state, status: false, resetProgressTimer: true, errors: this.state.errors +1} );
       validate = false;
     }
 
